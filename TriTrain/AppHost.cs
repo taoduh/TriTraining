@@ -2,24 +2,20 @@
 using System.Data;
 using System.Linq;
 using System.Web;
-using Funq;
 using ServiceStack;
 using ServiceStack.WebHost.Endpoints;
 using ServiceStack.Common.Utils;
 
-//using ServiceStack.Configuration;
-//using ServiceStack.Data;
 using ServiceStack.MiniProfiler;
 using ServiceStack.MiniProfiler.Data;
 using ServiceStack.OrmLite;
-using ServiceStack.OrmLite.Sqlite;
 //using ServiceStack.OrmLite.SqlServer;
+using ServiceStack.OrmLite.MySql;
 using TriTrain.ServiceInterface;
 using TriTrain.ServiceModel.Types;
 
 namespace TriTrain
 {
-
     // http://www.curlette.com/?p=1068
 
     public class AppHost
@@ -49,29 +45,26 @@ namespace TriTrain
 
             //this.Plugins.Add(new RazorFormat());
 
+            // TODO: store properties as below
+            //            container.Register<IDbConnectionFactory>
+            //                (new OrmLiteConnectionFactory
+            //                    //(Properties.Settings.Default.LocalSQLConnectionString,
+            //                    ("",
+            //                    SqlServerOrmLiteDialectProvider.Instance));
+
+            String server = "localhost";
+            String database = "TriTrain";
+            String uid = "tritrain";
+            String password = "runningman";
+            String connectionString = "SERVER=" + server + ";DATABASE=" + database + ";UID=" + uid + ";PASSWORD=" + password + ";";
+
             container.Register<IDbConnectionFactory>(
-                c => new OrmLiteConnectionFactory("~/db.sqlite".MapHostAbsolutePath(), SqliteDialect.Provider)
+                c => new OrmLiteConnectionFactory(connectionString, MySqlDialect.Provider)
                 {
                     ConnectionFilter = x => new ProfiledDbConnection(x, Profiler.Current)
-                });
+                }
+            );
 
-//            container.Register<IDbConnectionFactory>
-//                (new OrmLiteConnectionFactory
-//                    //(Properties.Settings.Default.LocalSQLConnectionString,
-//                    ("",
-//                    SqlServerOrmLiteDialectProvider.Instance));
-
-            using (var db = container.Resolve<IDbConnectionFactory>().Open())
-            {
-                db.DropAndCreateTable<RaceDistance>();
-                db.DropAndCreateTable<Race>();
-                db.DropAndCreateTable<Plan>();
-                db.DropAndCreateTable<Workout>();
-                RaceDistancesServices.AddInitialRecords(db);
-                RacesServices.AddInitialRecords(db);
-                PlansServices.AddInitialRecords(db);
-                WorkoutsServices.AddInitialRecords(db);
-            }
         }
 
     }
